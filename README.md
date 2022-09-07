@@ -8,7 +8,7 @@ Usage:
   natshook [OPTIONS]
 Application Options:
   -a, --addr=     Address to listen on (default: :8080)
-  -h, --hook=     Path to the toml file containing hooks definition
+  -f, --file=     Path to the toml file containing hooks definition
       --pid=      Create PID file at the given path
 Help Options:
   -h, --help      Show this help message
