@@ -12,8 +12,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/facebookgo/pidfile"
-	"github.com/nats-io/nats.go"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/nats-io/nats.go"
 )
 
 type HookList struct {
@@ -47,9 +47,9 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-    if err := msg.Respond(stdout.Bytes()); err != nil {
-        return err
-    }
+	if err := msg.Respond(stdout.Bytes()); err != nil {
+		return err
+	}
 
 	errCode := cmd.ProcessState.ExitCode()
 	if errCode != 0 {
