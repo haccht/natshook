@@ -101,7 +101,7 @@ func main() {
 		Addr      string `short:"a" long:"addr" description:"Address to listen on" default:":4222"`
 		Hook      string `short:"f" long:"file" description:"Path to the toml file containing hooks definition" required:"true"`
 		PidPath   string `long:"pid" description:"Create PID file at the given path"`
-		UserCreds string `logn:"creds" description:"User Credentials File"`
+		UserCreds string `long:"creds" description:"User Credentials File"`
 		NKeyFile  string `long:"nkey" description:"NKey Seed File"`
 		TlsCert   string `long:"tlscert" description:"TLS client certificate file"`
 		TlsKey    string `long:"tlskey" description:"Private key file for client certificate"`

@@ -11,6 +11,7 @@ Application Options:
   -a, --addr=      Address to listen on (default: :4222)
   -f, --file=      Path to the toml file containing hooks definition
       --pid=       Create PID file at the given path
+      --creds=     User Credentials File
       --nkey=      NKey Seed File
       --tlscert=   TLS client certificate file
       --tlskey=    Private key file for client certificate
