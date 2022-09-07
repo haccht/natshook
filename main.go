@@ -58,7 +58,7 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	return nil
 }
 
-func setupConn(addr string) (*nats.Conn, error) {
+func setupConn(addr, userCreds, nkeyFile, tlsCert, tlsKey, tlsCACert string) (*nats.Conn, error) {
 	totalWait := 10 * time.Minute
 	reconnectDelay := time.Second
 
@@ -74,17 +74,41 @@ func setupConn(addr string) (*nats.Conn, error) {
 	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
 		log.Fatalf("Exiting: %v", nc.LastError())
 	}))
-	return nats.Connect(nats.DefaultURL, opts...)
+
+	if userCreds != "" {
+		opts = append(opts, nats.UserCredentials(userCreds))
+	} else if nkeyFile != "" {
+		opt, err := nats.NkeyOptionFromSeed(nkeyFile)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, opt)
+	}
+
+	if tlsCert != "" && tlsKey != "" {
+		opts = append(opts, nats.ClientCert(tlsCert, tlsKey))
+	}
+
+	if tlsCACert != "" {
+		opts = append(opts, nats.RootCAs(tlsCACert))
+	}
+
+	return nats.Connect(addr, opts...)
 }
 
 func main() {
-	var options struct {
-		Addr    string `short:"a" long:"addr" description:"Address to listen on" default:":4222"`
-		Hook    string `short:"f" long:"file" description:"Path to the toml file containing hooks definition" required:"true"`
-		PidPath string `long:"pid" description:"Create PID file at the given path"`
+	var opts struct {
+		Addr      string `short:"a" long:"addr" description:"Address to listen on" default:":4222"`
+		Hook      string `short:"f" long:"file" description:"Path to the toml file containing hooks definition" required:"true"`
+		PidPath   string `long:"pid" description:"Create PID file at the given path"`
+		UserCreds string `logn:"creds" description:"User Credentials File"`
+		NKeyFile  string `long:"nkey" description:"NKey Seed File"`
+		TlsCert   string `long:"tlscert" description:"TLS client certificate file"`
+		TlsKey    string `long:"tlskey" description:"Private key file for client certificate"`
+		TlsCACert string `long:"tlscacert" description:"CA certificate to verify peer against"`
 	}
 
-	if _, err := flags.ParseArgs(&options, os.Args); err != nil {
+	if _, err := flags.ParseArgs(&opts, os.Args); err != nil {
 		if fe, ok := err.(*flags.Error); ok && fe.Type == flags.ErrHelp {
 			os.Exit(0)
 		}
@@ -92,12 +116,12 @@ func main() {
 	}
 
 	var hooks HookList
-	_, err := toml.DecodeFile(options.Hook, &hooks)
+	_, err := toml.DecodeFile(opts.Hook, &hooks)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	nc, err := setupConn(options.Addr)
+	nc, err := setupConn(opts.Addr, opts.UserCreds, opts.NKeyFile, opts.TlsCert, opts.TlsKey, opts.TlsCACert)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -115,12 +139,12 @@ func main() {
 	}
 	nc.Flush()
 
-	if options.PidPath != "" {
-		pidfile.SetPidfilePath(options.PidPath)
+	if opts.PidPath != "" {
+		pidfile.SetPidfilePath(opts.PidPath)
 		if err := pidfile.Write(); err != nil {
 			log.Fatal(err)
 		}
-		defer os.Remove(options.PidPath)
+		defer os.Remove(opts.PidPath)
 	}
 
 	if err := nc.LastError(); err != nil {

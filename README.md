@@ -6,12 +6,18 @@ Subscribe for NATS server and run scripts whenever the specific subject is trigg
 ```
 Usage:
   natshook [OPTIONS]
+
 Application Options:
-  -a, --addr=     Address to listen on (default: :8080)
-  -f, --file=     Path to the toml file containing hooks definition
-      --pid=      Create PID file at the given path
+  -a, --addr=      Address to listen on (default: :4222)
+  -f, --file=      Path to the toml file containing hooks definition
+      --pid=       Create PID file at the given path
+      --nkey=      NKey Seed File
+      --tlscert=   TLS client certificate file
+      --tlskey=    Private key file for client certificate
+      --tlscacert= CA certificate to verify peer against
+
 Help Options:
-  -h, --help      Show this help message
+  -h, --help       Show this help message
 ```
 
 
