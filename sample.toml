@@ -1,0 +1,9 @@
+[[hooks]]
+subject= "echo"
+workdir = "/"
+exec = "cat"
+
+[[hooks]]
+subject = "count"
+workdir = "/"
+exec = "wc -c"
