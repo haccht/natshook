@@ -1,9 +1,19 @@
 [[hooks]]
-subject= "echo"
+subject = "echo"
 workdir = "/"
-exec = "cat"
+command = "cat"
 
 [[hooks]]
 subject = "count"
 workdir = "/"
-exec = "wc -c"
+command = "wc -c"
+
+[[hooks]]
+subject = "inline"
+inline = """
+content=$(cat)
+echo "== echo =="
+echo -E "${content}"
+echo "== count =="
+echo -E "${content}" | wc -c
+"""

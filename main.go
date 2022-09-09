@@ -22,12 +22,23 @@ type HookList struct {
 
 type HookItem struct {
 	Subject string
-	Exec    string
 	Workdir string
+	Command string
+	Inline  string
 }
 
 func runCmd(h HookItem, msg *nats.Msg) error {
-	commands := strings.Fields(h.Exec)
+	var commands []string
+	if h.Inline != "" {
+		log.Printf("Execute command 'sh' on subject '%s'", h.Subject)
+		commands = append(commands, "sh", "-c", h.Inline)
+	} else if h.Command != "" {
+		log.Printf("Execute command '%s' on subject '%s'", h.Command, h.Subject)
+		commands = append(commands, strings.Fields(h.Command)...)
+	} else {
+		return nil
+	}
+
 	cmd := exec.Command(commands[0], commands[1:]...)
 	if h.Workdir != "" {
 		cmd.Dir = h.Workdir
@@ -126,12 +137,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for i, _ := range hooks.Hooks {
+	for i := range hooks.Hooks {
 		h := hooks.Hooks[i]
 
 		log.Printf("Subscribe subject '%s'", h.Subject)
 		nc.Subscribe(h.Subject, func(msg *nats.Msg) {
-			log.Printf("Execute command '%s' on subject '%s'", h.Exec, h.Subject)
 			if err := runCmd(h, msg); err != nil {
 				log.Printf("Error: %s", err)
 			}
