@@ -27,7 +27,7 @@ Define some hooks you want to serve in `hooks.toml`.
 ```
 [[hooks]]
 subject = 'sample'
-exec = '/path/to/script.sh'
+command = '/path/to/script.sh'
 ```
 
 Run `natshook` as below:
