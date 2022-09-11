@@ -56,8 +56,10 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	stdin.Close()
 
 	err = cmd.Run()
-	if err := msg.Respond(stdout.Bytes()); err != nil {
-		return fmt.Errorf("Failed to respond: %s", err)
+	if msg.Reply != "" {
+		if err := msg.Respond(stdout.Bytes()); err != nil {
+			return fmt.Errorf("Failed to respond: %s", err)
+		}
 	}
 	if err != nil {
 		return fmt.Errorf("Failed to run command: %s", err)
