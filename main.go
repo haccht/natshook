@@ -40,6 +40,7 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	}
 
 	cmd := exec.Command(commands[0], commands[1:]...)
+	cmd.Env = os.Environ()
 	if h.Workdir != "" {
 		cmd.Dir = h.Workdir
 	}
