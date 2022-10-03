@@ -31,7 +31,7 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	var commands []string
 	if h.Inline != "" {
 		log.Printf("Execute command 'sh' on subject '%s'", h.Subject)
-		commands = append(commands, "sh", "-xc", h.Inline)
+		commands = append(commands, "sh", "-c", h.Inline)
 	} else if h.Command != "" {
 		log.Printf("Execute command '%s' on subject '%s'", h.Command, h.Subject)
 		commands = append(commands, strings.Fields(h.Command)...)
