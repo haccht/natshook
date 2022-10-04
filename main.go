@@ -155,11 +155,13 @@ func main() {
 
 		log.Printf("[%s]: Subscribed", h.Subject)
 		nc.Subscribe(h.Subject, func(msg *nats.Msg) {
-			prefix := fmt.Sprintf("[%s]: [%s] ", h.Subject, xid.New())
-			logger := log.New(os.Stdout, prefix, log.LstdFlags|log.Lmsgprefix)
-			if err := runCmd(h, msg, logger); err != nil {
-				logger.Printf("Error: %s", err)
-			}
+			go func(msg *nats.Msg) {
+				prefix := fmt.Sprintf("[%s]: [%s] ", h.Subject, xid.New())
+				logger := log.New(os.Stdout, prefix, log.LstdFlags|log.Lmsgprefix)
+				if err := runCmd(h, msg, logger); err != nil {
+					logger.Printf("Error: %s", err)
+				}
+			}(msg)
 		})
 	}
 	nc.Flush()
