@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/facebookgo/pidfile"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/nats-io/nats.go"
+	"github.com/rs/xid"
 )
 
 type HookList struct {
@@ -27,13 +29,21 @@ type HookItem struct {
 	Inline  string
 }
 
-func runCmd(h HookItem, msg *nats.Msg) error {
+func ellipsis(text string, length int) string {
+	r := []rune(text)
+	if len(r) > length {
+		return string(r[0:length]) + "..."
+	}
+	return text
+}
+
+func runCmd(h HookItem, msg *nats.Msg, logger *log.Logger) error {
 	var commands []string
 	if h.Inline != "" {
-		log.Printf("Execute command 'sh' on subject '%s'", h.Subject)
+		logger.Printf("Execute command \"sh\"")
 		commands = append(commands, "sh", "-c", h.Inline)
 	} else if h.Command != "" {
-		log.Printf("Execute command '%s' on subject '%s'", h.Command, h.Subject)
+		logger.Printf("Execute command \"%s\"", ellipsis(h.Command, 80))
 		commands = append(commands, strings.Fields(h.Command)...)
 	} else {
 		return nil
@@ -57,14 +67,18 @@ func runCmd(h HookItem, msg *nats.Msg) error {
 	stdin.Close()
 
 	err = cmd.Run()
+	result := stdout.Bytes()
 	if msg.Reply != "" {
-		if err := msg.Respond(stdout.Bytes()); err != nil {
-			return fmt.Errorf("Failed to respond: %s", err)
+		if err := msg.Respond(result); err != nil {
+			return err
 		}
 	}
 	if err != nil {
 		return fmt.Errorf("Failed to run command: %s", err)
 	}
+
+	summary := ellipsis(string(result), 80)
+	logger.Printf("Result: %s", strconv.Quote(summary))
 	return nil
 }
 
@@ -139,10 +153,12 @@ func main() {
 	for i := range hooks.Hooks {
 		h := hooks.Hooks[i]
 
-		log.Printf("Subscribe subject '%s'", h.Subject)
+		log.Printf("[%s]: Subscribed", h.Subject)
 		nc.Subscribe(h.Subject, func(msg *nats.Msg) {
-			if err := runCmd(h, msg); err != nil {
-				log.Printf("Error: %s", err)
+			prefix := fmt.Sprintf("[%s]: [%s] ", h.Subject, xid.New())
+			logger := log.New(os.Stdout, prefix, log.LstdFlags|log.Lmsgprefix)
+			if err := runCmd(h, msg, logger); err != nil {
+				logger.Printf("Error: %s", err)
 			}
 		})
 	}

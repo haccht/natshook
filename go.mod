@@ -7,6 +7,7 @@ require (
 	github.com/facebookgo/pidfile v0.0.0-20150612191647-f242e2999868
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/nats-io/nats.go v1.16.0
+	github.com/rs/xid v1.4.0
 )
 
 require (
