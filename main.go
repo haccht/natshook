@@ -73,12 +73,12 @@ func runCmd(h HookItem, msg *nats.Msg, logger *log.Logger) error {
 			return err
 		}
 	}
+	summary := ellipsis(string(result), 80)
+	logger.Printf("Result: %s", strconv.Quote(summary))
+
 	if err != nil {
 		return fmt.Errorf("Failed to run command: %s", err)
 	}
-
-	summary := ellipsis(string(result), 80)
-	logger.Printf("Result: %s", strconv.Quote(summary))
 	return nil
 }
 
